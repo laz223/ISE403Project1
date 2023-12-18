@@ -1,0 +1,126 @@
+\documentclass{article}
+\usepackage{graphicx,amsmath,amssymb} % Required for inserting images
+\usepackage[margin=1.5in]{geometry}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{lipsum} % For generating dummy text
+
+
+\title{ISE 403\\ Homework 7}
+\author{Lara Zebiane }
+\date{December 17, 2023}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+\begin{center}
+    \textbf{\resizebox{1.1\linewidth}{!}{Optimization Algorithms in Machine Learning}}\\
+    \vspace{0.4 cm}
+    \resizebox{0.2\linewidth}{!}{Lara Zebiane$^*$}\\
+    \resizebox{0.2\linewidth}{!}{December 2023}
+    
+\end{center}
+\vspace{0.5cm}
+\section*{Abstract}
+\
+Gradient descent optimization algorithms, while increasingly popular, are often
+used as black-box optimizers, as practical explanations of their strengths and
+weaknesses are hard to come by. This article aims to provide the reader with
+intuitions with regard to the behaviour of different algorithms that will allow her
+to put them to use. In the course of this overview, we look at different variants of
+gradient descent, summarize challenges and introduce the most common optimization
+algorithms. We also go over the main aspects related to convergence, that help determine when to stop the optimization process.
+
+
+\section*{Introduction}
+\
+In the broad landscape of machine learning, the quest for efficient optimization algorithms has been a central pursuit. In this paper, we delve into the complex world of gradient descent optimization, focusing on critical works that have shaped the trajectory of this particular domain. As we navigate through the realms of optimization techniques, we aim to expose the underlying mathematics, and also to interpret the practical applications that drive the continuous need for improvement.
+
+In section 1, we provide the reader with intuition regarding the behavior of different
+algorithms for optimizing gradient descent that will help put them to use \cite{gdo}. We look at the different variants of gradient descent, then we summarize the challenges during the training of machine learning models. We will also introduce  the most common optimization algorithms by showing their motivation to resolve these challenges. In Section 2, we introduce $Adam$ 
+\cite{adam},  a method for efficient stochastic optimization that only requires gradients with little memory requirement. The method computes individual adaptive learning rates for
+different parameters from estimates of first and second moments of the derivatives. This section also includes a description for the algorithm, along with the properties of its update rule. Continuing our exploration, Section 3 delves into the convergence properties of $Adam$; due to the exponential moving average use in the algorithm, the convergence of $Adam$ is not guaranteed \cite{convad}. We discuss new variants and show that it either performs similarly or better on some commonly used problem in machine learning.
+
+Digging deeper into this topic, some interesting questions arise that still need to be investigated. For example, how can adaptive learning rates be further optimized to balance exploration and exploitation in changing environments? Or, how can optimization algorithms be tailored to facilitate continual learning in scenarios where new data arrives incrementally? These open questions highlight the diverse avenues for exploration in the optimization landscape and machine learning.\\
+\\
+\small{*PhD Student, Lehigh University, \href{https://coral.ise.lehigh.edu/laz223/}}
+
+
+\section*{Mathematical Background}
+In this section, we establish the essential mathematical framework required to comprehend the optimization algorithms discussed in the subsequent paper. We will delve into core concepts, problem formulations, and the mathematical underpinnings of optimization algorithms.\\
+\\
+Given a differentiable function $f:\mathbb{R}^n\to\mathbb{R}$, the gradient of $f$, denoted as $\nabla f(x)$, is a vector containing the partial derivatives of the function with respect to each variable:
+\[\nabla f(x)=\left(\frac{\partial f}{\partial x_1},\frac{\partial f}{\partial x_2},\dots ,\frac{\partial f}{\partial x_n}\right)\]
+where each partial derivative, $\frac{\partial f}{\partial x_i}$, measures how the function changes concerning each input variable $x_i$.
+\\
+A function $f$ is convex if, for any two points $x$ and $y$ in its domain and any $\lambda$ in the range [0, 1], the following inequality holds:
+\[f\left(\lambda x+(1-\lambda y)y\right)\leq\lambda f(x)+(1-\lambda)f(y).\]
+A local minimum/maximum is a point where the objective function is lower/higher than in its immediate neighborhood, whereas a global minimum/maximum is the lowest/highest point in the entire domain. Convex functions have a single global minimum, making them ideal for optimization. Functions that do not satisfy the convexity condition may have multiple local minima, making them challenging to optimize.\\
+In the context of optimization, we are typically concerned with minimizing an objective function, which is often denoted as $f(x)$. This function represents the performance or cost associated with a particular set of parameters $x$. Optimization problems can also include constraints, which are conditions that restrict the feasible parameter space. Constraints can be expressed mathematically as equalities or inequalities. In a constrained optimization problem, we aim to find the parameters that minimize the objective function while satisfying the given constraints:
+\begin{equation*}
+\begin{aligned}
+& \underset{x}{\text{minimize}} & & f(x)
+ \\
+& \text{subject to}
+& & g_i(x) \leq 0, \; i = 1,2, \ldots, m\\
+&&& h_j(x)=0, \; j=1,2,\ldots, p.
+\end{aligned}
+\end{equation*}
+Here, $g_i$ represents the function in the $i$th inequality constraint, and $h_j$ represents the $j$th equality constraints. The objective is to find a set of parameters $x$ that minimizes $f$ while satisfying all these constraints.\\
+\\
+Gradient descent is a way to minimize an objective function $f$ parameterized by a model’s
+parameters $x\in\mathbb{R}^d$ by updating the parameters in the opposite direction of the gradient of the
+objective function $\nabla_xf(x)$ with respect to the parameters. The learning rate $\eta$ determines the size of the
+steps we take to reach a (local) minimum.\\
+There are many variants of gradient descent, which differ in how much data we use to compute the
+gradient of the objective function, we mention three of them:
+\begin{itemize}
+    \item Batch gradient descent: Vanilla gradient descent, as known as batch gradient descent, computes the gradient of the cost function with respect
+to the parameters $\theta$ for the entire training dataset:
+\[\theta_{n+1}=\theta_n-\eta\cdot\nabla_\theta f(\theta).\]
+\item Stochastic gradient descent: Stochastic gradient descent (SGD) in contrast performs a parameter update for each training $f_i(\theta)$:
+\[\theta_{n+1}=\theta_n-\eta\cdot\nabla_\theta f_i(\theta).\]
+\item Mini-batch gradient descent
+Mini-batch gradient descent finally takes the best of both worlds and performs an update for every
+mini-batch of n training example.
+\end{itemize}
+
+Some of the gradient descent optimization algorithms that are widely used by the Deep Learning community are the following:
+\begin{itemize}
+    \item Momentum: it is an approach that adds a \enquote{velocity} term to the parameter updates, enabling smoother convergence and escaping local minima:
+\[ \upsilon_t=\gamma\upsilon_{t-1}+\eta\nabla_\theta f(\theta)\]
+      \[  \theta_{n+1}=\theta_n-\upsilon_t.\]
+\item Adagrad: it is an algorithm for gradient-based optimization that adapts the learning
+rate to the parameters, performing larger updates for infrequent and smaller updates for frequent
+parameters. For this reason, it is well-suited for dealing with sparse data.
+\item Adaptive Moment Estimation (Adam) is another method that computes adaptive learning rates
+for each parameter. In addition to storing an exponentially decaying average of past squared gradients
+$\upsilon_t$, Adam also keeps an exponentially decaying average of past gradients
+$m_t$, similar to momentum:
+\[m_t=\beta_1m_{t-1}+(1-\beta_1)g_t\]
+\[\upsilon_t=\beta_2m_{t-1}+(1-\beta_2)g^2_t,\]
+where $\beta_1$ and $\beta_2$ are parameters that are set by the user of the algorithm.
+\end{itemize}
+
+The convergence is a critical concept in optimization. It refers to the behavior of an optimization algorithm as it iteratively refines the solution to reach the optimal or near-optimal point. Convergence criteria help determine when to stop the optimization process. An aspect related to convergence is the convergence criteria, where 
+the choice of criteria depends on the problem, the algorithm, and the desired level of accuracy. Common convergence criteria include objective function value, gradient norm, parameter change, etc. In addition, an important aspect is the convergence to local minima vs. global minima. One challenge in optimization is that many algorithms converge to local minima rather than the global minimum. This depends on the choice of optimization algorithm, initialization, and the nature of the objective function (convex or nonconvex). We also mention the early stopping aspect; In practice, early stopping is often employed to prevent over-fitting, particularly in machine learning. This means terminating the optimization process before full convergence to prevent the model from fitting the training data too closely, which can lead to poor generalization to new data.
+\section*{Literature Review}
+
+Machine learning develops rapidly, which has made
+many theoretical breakthroughs and is widely applied in various fields. Optimization, as an important part of machine learning,
+has attracted much attention of researchers. With the exponential growth of data amount and the increase of model complexity, optimization methods in machine learning face more and more
+challenges. Over the years, several optimization algorithms have been proposed to tackle these challenges. Ruder \cite{gdo} offers a concise yet comprehensive exploration of the landscape of gradient descent optimization techniques. Ruder both explains the theoretical underpinnings of these techniques and offers practical insights and guidance on their application. By summarizing and comparing different optimization strategies, the paper \cite{gdo} helps in making informed choices about which algorithm is most suitable for specific tasks.
+
+One of the important algorithms in the context of optimization methods for machine learning is $Adam$ \cite{adam}. $Adam$ was introduced by Kingma and Lei Ba as an algorithm for first-order gradient-based optimization of
+stochastic objective functions that is based on adaptive estimates of lower-order moments. This method, by combining adaptive learning rates and momentum, offers efficient optimization and has been pivotal in training robust neural networks. $Adam$'s key innovation lies in its adaptive learning rates, which make it particularly effective in training neural networks.\\ Reddi, Kale, and Kumar analyze the convergence properties of $Adam$ in \cite{convad}. They found that in some situations, $Adam$ fails to converge  to an optimal solution due to the exponential moving average used
+in the algorithm. The authors suggests that the convergence issues can be fixed by endowing this algorithm with “long-term memory” of past gradients. They also propose new variants that avoid the convergence issues of Adam and lead to improved empirical performance of $Adam$ algorithm.
+
+
+
+\nocite{*}
+\bibliographystyle{plain} \bibliography{lara}
+
+
+\end{document}
